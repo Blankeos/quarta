@@ -1,0 +1,6 @@
+@import url("/fonts/vercetti.css");
+@import "tailwindcss";
+
+:root {
+  font-family: "Vercetti", serif;
+}

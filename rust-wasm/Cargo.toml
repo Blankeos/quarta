@@ -1,0 +1,8 @@
+[package]
+name = "rust-wasm"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+rowboat = "0.0.9"
+wasm-bindgen = "0.2.100"

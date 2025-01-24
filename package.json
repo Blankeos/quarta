@@ -11,24 +11,31 @@
     "lint": "prettier --check .; eslint .; tsc --noEmit;",
     "lint:fix": "prettier --write .; eslint --fix .; tsc --noEmit;",
     "format": "prettier --write .",
-    "update": "bunx npm-check-updates --interactive --format group"
+    "update": "bunx npm-check-updates --interactive --format group",
+    "wasm-build": "wasm-pack build --target web"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
     "@hono/vite-dev-server": "^0.18.1",
-    "@types/bun": "^1.1.18",
+    "@types/bun": "^1.2.0",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "eslint": "^9.18.0",
     "eslint-plugin-solid": "^0.14.5",
     "prettier": "^3.4.2",
     "typescript": "^5.7.3",
-    "vite": "^6.0.11"
+    "vite": "^6.0.11",
+    "vite-plugin-solid-svg": "^0.8.1"
   },
   "dependencies": {
-    "hono": "^4.6.17",
+    "@tailwindcss/vite": "^4.0.0",
+    "@tanstack/solid-query": "^5.64.2",
+    "dexie": "^4.0.11",
+    "hono": "^4.6.18",
     "solid-js": "^1.9.4",
+    "solid-sonner": "^0.2.8",
+    "tailwindcss": "^4.0.0",
     "vike": "0.4.218",
     "vike-metadata-solid": "^1.0.4",
     "vike-solid": "^0.7.8"
