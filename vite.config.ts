@@ -30,6 +30,7 @@ export default defineConfig({
         /.*\.(svg|png)($|\?)/,
         /^\/(public|assets|static)\/.+/,
         /^\/node_modules\/.*/,
+        /^\/rust-wasm\/pkg\/.*/, // Only in dev, make sure to exclude serving this statically.
       ],
 
       injectClientScript: false,

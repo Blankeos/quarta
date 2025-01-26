@@ -289,7 +289,11 @@ dependencies = [
 name = "rust-wasm"
 version = "0.1.0"
 dependencies = [
+ "chrono",
+ "csv",
  "rowboat",
+ "serde",
+ "serde_json",
  "wasm-bindgen",
 ]
 
@@ -323,6 +327,18 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.137"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "930cfb6e6abf99298aaad7d29abbef7a9999a9a8806a40088f55f0dcec03146b"
+dependencies = [
+ "itoa",
+ "memchr",
+ "ryu",
+ "serde",
 ]
 
 [[package]]

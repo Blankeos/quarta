@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 .env
+
+./rust-wasm/.gitignore

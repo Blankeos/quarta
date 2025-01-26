@@ -12,30 +12,36 @@
     "lint:fix": "prettier --write .; eslint --fix .; tsc --noEmit;",
     "format": "prettier --write .",
     "update": "bunx npm-check-updates --interactive --format group",
-    "wasm-build": "wasm-pack build --target web"
+    "wasm-build": "cd rust-wasm && wasm-pack build --target web"
   },
   "keywords": [],
   "author": "",
   "devDependencies": {
     "@hono/vite-dev-server": "^0.18.1",
     "@types/bun": "^1.2.0",
+    "@types/papaparse": "^5.3.15",
     "@typescript-eslint/eslint-plugin": "^8.21.0",
     "@typescript-eslint/parser": "^8.21.0",
     "eslint": "^9.18.0",
     "eslint-plugin-solid": "^0.14.5",
     "prettier": "^3.4.2",
+    "prettier-plugin-tailwindcss": "^0.6.11",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
     "vite-plugin-solid-svg": "^0.8.1"
   },
   "dependencies": {
+    "@soorria/solid-dropzone": "^1.0.1",
     "@tailwindcss/vite": "^4.0.0",
     "@tanstack/solid-query": "^5.64.2",
+    "chart.js": "^4.4.7",
     "dexie": "^4.0.11",
     "hono": "^4.6.18",
+    "papaparse": "^5.5.1",
     "solid-js": "^1.9.4",
     "solid-sonner": "^0.2.8",
     "tailwindcss": "^4.0.0",
+    "tippy.js": "^6.3.7",
     "vike": "0.4.218",
     "vike-metadata-solid": "^1.0.4",
     "vike-solid": "^0.7.8"

@@ -4,3 +4,12 @@
 :root {
   font-family: "Vercetti", serif;
 }
+
+button {
+  @apply cursor-pointer;
+}
+
+::selection {
+  background-color: #00c950;
+  color: white;
+}
