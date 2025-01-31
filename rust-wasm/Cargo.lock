@@ -291,6 +291,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "csv",
+ "js-sys",
  "rowboat",
  "serde",
  "serde_json",

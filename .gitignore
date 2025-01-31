@@ -25,4 +25,4 @@ dist-ssr
 
 .env
 
-./rust-wasm/.gitignore
+rust-wasm/target

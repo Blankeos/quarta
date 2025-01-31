@@ -112,7 +112,8 @@ export default function Page() {
         {...dropzone.getRootProps()}
       >
         <h1 class="mb-2 text-5xl font-bold text-green-500">Quarta</h1>
-        <p class="mb-8 text-gray-600">Personal finance insights powered by your own Spreadsheet</p>
+        <p class="mb-1 text-gray-600">Personal finance insights powered by your own Spreadsheet</p>
+        <p class="mb-8 text-xs text-gray-600">Powered by 🦀 Rust and 🐬 SolidJS</p>
         <div class="w-full max-w-md">
           <input
             type="text"
