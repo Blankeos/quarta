@@ -35,7 +35,11 @@ export default defineConfig({
 
       injectClientScript: false,
     }),
-    vike({ prerender: true }),
+    vike({
+      prerender: {
+        partial: true,
+      },
+    }),
     vikeSolid(),
     tailwindcss(),
     solidSvg(),
