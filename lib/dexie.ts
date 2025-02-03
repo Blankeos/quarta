@@ -5,6 +5,7 @@ import Dexie, { EntityTable } from "dexie";
 // ===========================================================================
 interface Sheet {
   id: number;
+  name?: string;
   content: string;
   created_at: string;
   last_opened_at: string;
@@ -21,7 +22,7 @@ interface DexieDatabase extends Dexie {
 const db = new Dexie("quarta_db") as DexieDatabase;
 
 db.version(1).stores({
-  sheets: "++id, content, created_at, last_opened_at",
+  sheets: "++id, content, created_at, last_opened_at, name",
 });
 
 

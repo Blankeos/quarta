@@ -1,4 +1,4 @@
-import { IconClose, IconDownloading, IconGoogleSheet, IconLink } from "@/assets";
+import { IconClose, IconDownloading, IconEdit, IconGoogleSheet, IconLink } from "@/assets";
 import { Tippy } from "@/components/solid-tippy";
 import { PageRoutes } from "@/constants/page-routes";
 import { db } from "@/lib/dexie";
@@ -41,6 +41,7 @@ export default function Page() {
         content: text,
         created_at: new Date().toISOString(),
         last_opened_at: new Date().toISOString(),
+        name: new Date().toISOString(),
       });
 
       toast.success("Received your Sheet!");
@@ -158,28 +159,78 @@ export default function Page() {
         </div>
         <div class="mt-8 w-full max-w-md">
           <For each={sheets.data ?? []}>
-            {(sheet) => (
-              <div class="group relative mb-2 flex items-center">
-                <a
-                  href={`${PageRoutes.Insights}/${sheet.id}`}
-                  class="relative flex w-full items-center justify-between rounded border p-2 transition"
-                >
-                  <div>{new Date(sheet.created_at).toLocaleDateString()}</div>
-                </a>
-                <Tippy props={{ content: "Delete", delay: [200, 0] }}>
-                  <button
-                    class="absolute right-0 cursor-pointer text-red-400 transition active:scale-95"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      e.preventDefault();
-                      db.sheets.delete(sheet.id);
-                    }}
+            {(sheet) => {
+              const [isEditing, setIsEditing] = createSignal(false);
+
+              let inputRef!: HTMLInputElement;
+
+              return (
+                <div class="group relative mb-2 flex items-center">
+                  <a
+                    href={`${PageRoutes.Insights}/${sheet.id}`}
+                    class="relative flex w-full items-center justify-between rounded border p-3 px-5 transition"
                   >
-                    <IconClose />
-                  </button>
-                </Tippy>
-              </div>
-            )}
+                    <Show
+                      when={isEditing()}
+                      fallback={<div>{sheet.name ? sheet?.name : "-"}</div>}
+                      children={
+                        <div>
+                          <input
+                            ref={inputRef}
+                            type="text"
+                            value={sheet.name ?? ""}
+                            onInput={(e) => {
+                              const value = e.currentTarget.value;
+                              db.sheets.update(sheet.id, { name: value });
+                            }}
+                            onBlur={() => {
+                              setIsEditing(false);
+                            }}
+                            onKeyDown={(e) => {
+                              if (e.key === "Escape" || e.key === "Enter") {
+                                e.currentTarget.blur();
+                              }
+                            }}
+                            autofocus
+                            class="w-full border-b focus:outline-none"
+                          />
+                        </div>
+                      }
+                    />
+                  </a>
+
+                  <div class="absolute right-0 flex items-center gap-x-0">
+                    <div class="flex items-center opacity-0 transition group-hover:opacity-100">
+                      <Tippy props={{ content: "Edit Name", delay: [200, 0] }}>
+                        <button
+                          class="cursor-pointer text-gray-400 transition active:scale-95"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            e.preventDefault();
+                            setIsEditing(true);
+                            inputRef?.focus();
+                          }}
+                        >
+                          <IconEdit class="h-6 w-6" />
+                        </button>
+                      </Tippy>
+                    </div>
+                    <Tippy props={{ content: "Delete", delay: [200, 0] }}>
+                      <button
+                        class="cursor-pointer text-red-400 transition active:scale-95"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          db.sheets.delete(sheet.id);
+                        }}
+                      >
+                        <IconClose />
+                      </button>
+                    </Tippy>
+                  </div>
+                </div>
+              );
+            }}
           </For>
         </div>
       </div>
