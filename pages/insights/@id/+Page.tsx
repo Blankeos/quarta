@@ -177,7 +177,7 @@ const Page: Component = () => {
             </div>
           </div>
 
-          <div class="rounded-lg bg-white p-6 shadow-sm">
+          {/* <div class="rounded-lg bg-white p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold">Monthly Inflows vs Outflows</h3>
             <div class="rounded-lg">
               <StackedBarChart
@@ -211,7 +211,7 @@ const Page: Component = () => {
                 }}
               />
             </div>
-          </div>
+          </div> */}
 
           <div class="rounded-lg bg-white p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold">Debts Overview</h3>

@@ -415,6 +415,12 @@ fn parse_datetime_any(
         return Ok(chrono::DateTime::from_naive_utc_and_offset(dt, chrono::Utc));
     }
 
+    // Try "Wednesday, January 1, 2024" format
+    if let Ok(date) = chrono::NaiveDate::parse_from_str(datetime_str, "%A, %B %d, %Y") {
+        let dt = date.and_hms_opt(0, 0, 0).unwrap();
+        return Ok(chrono::DateTime::from_naive_utc_and_offset(dt, chrono::Utc));
+    }
+
     // Try RFC 3339 format
     if let Ok(dt) = chrono::DateTime::parse_from_rfc3339(datetime_str) {
         return Ok(dt.to_utc());
