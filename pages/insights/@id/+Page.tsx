@@ -11,7 +11,7 @@ import { IconChevronLeft, IconPiggyBank } from "@/assets";
 import { PolarChart } from "@/components/polarchart";
 import { StackedBarChart } from "@/components/stackedbarchart";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
-import { RustDataframe } from "@/rust-wasm/pkg/rust_wasm";
+import { RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
 import { createStore, produce } from "solid-js/store";

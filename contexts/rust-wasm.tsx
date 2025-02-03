@@ -1,6 +1,6 @@
 import { createContext, createSignal, FlowProps, onMount, useContext } from "solid-js";
 
-import init from "@/rust-wasm/pkg/rust_wasm";
+import init from "@/rust-wasm/pkg/rust_wasm.js";
 
 type RustWasmContextValue = {
   isReady: () => boolean;
