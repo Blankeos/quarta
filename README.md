@@ -1,19 +1,6 @@
-# 🐇 Solid Hop
+# Quarta
 
-💙 A **minimal** and **unopinionated** Vike + Solid + Hono starter.
-
-❤️ We love Vike and Solid, but it might be overwhelming to setup. The goal of this starter is to get you up and running quickly with good defaults without getting in the way of your opinions.
-
-This is more or less what you would get from a starter with `create next-app` or `create svelte` or `create solid`.
-
-If you want a more opinionated and fully-featured boilerplate instead: http://github.com/blankeos/solid-launch
-
-## Tech Stack:
-
-1. Vike + Hono - For SSR + Your own Server.
-2. SolidJS
-3. Bun (Can swap this with Node easily if you want).
-4. Tools: ESLint, Prettier
+A personal finance insights app powered by Rust and SolidJS.
 
 ## Quick Start
 
@@ -50,3 +37,10 @@ bun run build
 ```sh
 bun run preview # Just runs server.ts
 ```
+
+## Development Notes
+
+- Make sure to git add --force rust-wasm/pkg/rust_wasm.js rust-asm/pkg/rust_wasm_bg.wasm only.
+  We only need to do them once so they're included in deployments.
+- To build and iterate on the rust-wasm code, whenever editing `lib.rs`, run `bun run wasm-build`. And it
+  should run the wasm-pack build for you.
