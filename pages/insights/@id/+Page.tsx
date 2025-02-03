@@ -2,7 +2,7 @@ import { PageRoutes } from "@/constants/page-routes";
 import { db } from "@/lib/dexie";
 import { useLiveQuery } from "@/lib/dexie-solid-hook";
 import getTitle from "@/utils/get-title";
-import { Component, createEffect, createSignal } from "solid-js";
+import { Component, createEffect, createSignal, Show } from "solid-js";
 import { useMetadata } from "vike-metadata-solid";
 import { usePageContext } from "vike-solid/usePageContext";
 import { navigate } from "vike/client/router";
@@ -14,6 +14,7 @@ import { useRustWasmContext } from "@/contexts/rust-wasm";
 import { RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
+import { formatDate } from "@/utils/format-date";
 import { createStore, produce } from "solid-js/store";
 
 const Page: Component = () => {
@@ -107,8 +108,18 @@ const Page: Component = () => {
       </button>
 
       <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div class="mb-2 flex gap-x-1">
+          <Show when={sheet.data?.name}>
+            <span class="rounded-lg bg-neutral-100 px-3 py-1 text-sm text-neutral-800">
+              {sheet.data?.name}
+            </span>
+          </Show>
+          <span class="rounded-lg bg-neutral-100 px-3 py-1 text-sm text-neutral-800">
+            Last Opened: {formatDate(sheet.data?.last_opened_at ?? new Date())}
+          </span>
+        </div>
         <h1 class="mb-8 text-4xl font-bold text-gray-900">Here are some insights by Quarta</h1>
-        <div class="mb-8 rounded-lg bg-white p-6 shadow-sm">
+        <div class="mb-8 rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
           <h2 class="mb-4 text-xl font-semibold">AI-Powered Summary</h2>
           <p class="text-gray-600">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Your financial health looks
