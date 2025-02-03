@@ -7,7 +7,7 @@ import { useMetadata } from "vike-metadata-solid";
 import { usePageContext } from "vike-solid/usePageContext";
 import { navigate } from "vike/client/router";
 
-import { IconChevronLeft } from "@/assets";
+import { IconChevronLeft, IconPiggyBank } from "@/assets";
 import { PolarChart } from "@/components/polarchart";
 import { StackedBarChart } from "@/components/stackedbarchart";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
@@ -36,6 +36,7 @@ const Page: Component = () => {
     total_earned: number;
     total_spent: number;
     net_income: number;
+    lifetime_savings_decimal: number;
     lifetime_inflows_vs_outflows: {
       inflows: number[];
       outflows: number[];
@@ -45,6 +46,7 @@ const Page: Component = () => {
     total_earned: 0,
     total_spent: 0,
     net_income: 0,
+    lifetime_savings_decimal: 0,
     lifetime_inflows_vs_outflows: {
       inflows: [],
       outflows: [],
@@ -66,6 +68,7 @@ const Page: Component = () => {
           _stats.total_spent = totalEarnedVsSpent.total_spent;
           _stats.total_earned = totalEarnedVsSpent.total_earned;
           _stats.net_income = totalEarnedVsSpent.net_income;
+          _stats.lifetime_savings_decimal = totalEarnedVsSpent.lifetime_savings_decimal;
         })
       );
 
@@ -103,10 +106,6 @@ const Page: Component = () => {
         <IconChevronLeft />
       </button>
 
-      <button class="m-10 grid h-10 w-10 place-items-center rounded-md border text-neutral-800">
-        WOW CLICK
-      </button>
-
       <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <h1 class="mb-8 text-4xl font-bold text-gray-900">Here are some insights by Quarta</h1>
         <div class="mb-8 rounded-lg bg-white p-6 shadow-sm">
@@ -118,11 +117,15 @@ const Page: Component = () => {
         </div>
         <div class="mb-8 flex items-center gap-8">
           Quick Summary:
-          <div class="rounded-full bg-blue-100 px-4 py-2">
-            <span class="font-medium">Total Income: $120,000</span>
+          <div class="flex items-center gap-x-2 rounded-full border border-blue-200 bg-blue-100 px-4 py-2 text-sm text-blue-600">
+            <IconPiggyBank class="h-5 w-5 text-blue-500" />
+            <span class="font-medium">Total Earned: {formatCurrency(stats.total_earned)}</span>
           </div>
-          <div class="rounded-full bg-green-100 px-4 py-2">
-            <span class="font-medium">Monthly Savings: 25%</span>
+          <div class="flex items-center gap-x-2 rounded-full border border-green-200 bg-green-100 px-4 py-2 text-sm text-green-600">
+            <IconPiggyBank class="h-5 w-5 text-green-500" />
+            <span class="font-medium">
+              Lifetime Savings Average: {(stats.lifetime_savings_decimal * 100).toFixed(2)}%
+            </span>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-8">

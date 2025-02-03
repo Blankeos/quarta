@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use chrono::Datelike;
+use js_sys::Math::abs;
 use rowboat::dataframe::*;
 use wasm_bindgen::prelude::*;
 
@@ -191,6 +192,7 @@ impl RustDataframe {
             total_earned,
             total_spent,
             net_income: total_earned + total_spent,
+            lifetime_savings_decimal: (total_earned + total_spent) / total_earned,
         }
     }
 
@@ -475,6 +477,7 @@ pub struct GetTotalEarnedVsSpent {
     pub total_earned: f64,
     pub total_spent: f64,
     pub net_income: f64,
+    pub lifetime_savings_decimal: f64,
 }
 
 // #[wasm_bindgen]
