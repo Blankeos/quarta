@@ -112,7 +112,7 @@ export default function Page() {
         class="flex min-h-screen flex-col items-center justify-center p-4"
         {...dropzone.getRootProps()}
       >
-        <h1 class="mb-2 text-5xl font-bold text-green-500">Quarta</h1>
+        <h1 class="text-primary mb-2 text-5xl font-bold">Quarta</h1>
         <p class="mb-1 text-gray-600">Personal finance insights powered by your own Spreadsheet</p>
         <p class="mb-8 text-xs text-gray-600">Powered by 🦀 Rust and 🐬 SolidJS</p>
         <div class="w-full max-w-md">
@@ -152,7 +152,7 @@ export default function Page() {
             </p>
           </Show>
           {downloadMutation.isPending && (
-            <div class="mt-4 flex justify-center text-green-500">
+            <div class="text-primary mt-4 flex justify-center">
               <IconDownloading />
             </div>
           )}
@@ -201,7 +201,7 @@ export default function Page() {
 
                   <div class="absolute right-0 flex items-center gap-x-0">
                     <div class="flex items-center opacity-0 transition group-hover:opacity-100">
-                      <Tippy props={{ content: "Edit Name", delay: [200, 0] }}>
+                      <Tippy props={{ delay: [200, 0] }} content="Edit Name">
                         <button
                           class="cursor-pointer text-gray-400 transition active:scale-95"
                           onClick={(e) => {
@@ -215,7 +215,7 @@ export default function Page() {
                         </button>
                       </Tippy>
                     </div>
-                    <Tippy props={{ content: "Delete", delay: [200, 0] }}>
+                    <Tippy props={{ delay: [200, 0] }} content="Delete">
                       <button
                         class="cursor-pointer text-red-400 transition active:scale-95"
                         onClick={(e) => {

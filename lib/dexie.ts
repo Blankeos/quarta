@@ -26,7 +26,6 @@ db.version(1).stores({
   sheets: "++id, content, created_at, last_opened_at, name, source_url",
 });
 
-
 export { db };
 export type { Sheet };
 
