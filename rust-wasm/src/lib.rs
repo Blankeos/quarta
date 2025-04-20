@@ -36,11 +36,6 @@ pub fn add(left: u64, right: u64) -> u64 {
     left + right
 }
 
-#[wasm_bindgen]
-pub struct RustDataframe {
-    df: Option<Dataframe>,
-}
-
 #[derive(ToRow, Debug, serde::Serialize, Clone)]
 struct CsvRow {
     date: String,
@@ -51,6 +46,10 @@ struct CsvRow {
     remarks: Option<String>,
 }
 
+#[wasm_bindgen]
+pub struct RustDataframe {
+    df: Option<Dataframe>,
+}
 #[wasm_bindgen]
 impl RustDataframe {
     #[wasm_bindgen(constructor)]
@@ -203,7 +202,6 @@ impl RustDataframe {
             let mut debtors_vec: Vec<SearchDebtors> = Vec::new();
 
             for row in df.iter() {
-                console_log!("0 rust");
                 if let Some(Cell::Str(id)) = row.get("id") {
                     if id.to_lowercase().contains(&search_str) {
                         match row.get("amount").as_ref() {
