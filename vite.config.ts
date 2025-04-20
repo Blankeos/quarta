@@ -2,6 +2,7 @@
 import devServer from "@hono/vite-dev-server";
 
 // Vike
+import vikeRoutegen from "@blankeos/vike-routegen";
 import vikeSolid from "vike-solid/vite";
 import vike from "vike/plugin";
 
@@ -43,6 +44,7 @@ export default defineConfig({
     vikeSolid(),
     tailwindcss(),
     solidSvg(),
+    vikeRoutegen(),
   ],
   server: {
     port: 3000,
