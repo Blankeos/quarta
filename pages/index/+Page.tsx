@@ -113,7 +113,7 @@ export default function Page() {
         {...dropzone.getRootProps()}
       >
         <h1 class="text-primary mb-2 text-5xl font-bold">Quarta</h1>
-        <p class="mb-1 text-gray-600">Personal finance insights powered by your own Spreadsheet</p>
+        <p class="mb-1">Personal finance insights powered by your own Spreadsheet</p>
         <p class="mb-8 text-xs text-gray-600">Powered by 🦀 Rust and 🐬 SolidJS</p>
         <div class="w-full max-w-md">
           <input
@@ -126,7 +126,7 @@ export default function Page() {
               detectInputType(value);
             }}
             onKeyDown={handleKeyDown}
-            class="w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            class="border-border text-accent-foreground w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
           />
 
           <Show when={inputType() || dropzone.isDragActive}>

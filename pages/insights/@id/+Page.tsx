@@ -2,37 +2,42 @@ import { PageRoutes } from "@/constants/page-routes";
 import { db } from "@/lib/dexie";
 import { useLiveQuery } from "@/lib/dexie-solid-hook";
 import getTitle from "@/utils/get-title";
-import { Component, createEffect, createSignal, Show } from "solid-js";
+import { Component, createEffect, createMemo, createSignal, For, onMount, Show } from "solid-js";
+import { createStore } from "solid-js/store";
 import { useMetadata } from "vike-metadata-solid";
 import { usePageContext } from "vike-solid/usePageContext";
 import { navigate } from "vike/client/router";
 
-import { IconChevronLeft, IconPiggyBank } from "@/assets";
+import { IconChevronLeft, IconPiggyBank, IconTrendingUp } from "@/assets";
 import { PolarChart } from "@/components/polarchart";
 import { StackedBarChart } from "@/components/stackedbarchart";
+import DataTable from "@/components/ui/data-table";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
 import { RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatDate } from "@/utils/format-date";
-import { createStore, produce } from "solid-js/store";
+import { produce } from "solid-js/store";
 
 const Page: Component = () => {
   useMetadata({
     title: getTitle("Financial Insights"),
   });
 
+  // ===========================================================================
+  // Refs
+  // ===========================================================================
+  let dataframe!: RustDataframe;
+
+  // ===========================================================================
+  // Contexts
+  // ===========================================================================
   const pageContext = usePageContext();
   const { isReady } = useRustWasmContext();
 
-  const [debtSearch, setDebtSearch] = createSignal("");
-
-  const sheet = useLiveQuery(() =>
-    db.sheets.where("id").equals(parseInt(pageContext.routeParams.id)).first()
-  );
-
-  let dataframe!: RustDataframe;
-
+  // ===========================================================================
+  // States
+  // ===========================================================================
   const [stats, setStats] = createStore<{
     total_earned: number;
     total_spent: number;
@@ -55,6 +60,96 @@ const Page: Component = () => {
     },
   });
 
+  const [debtSearch, setDebtSearch] = createSignal("");
+
+  // const [debtors, setDebtors] = createStore<{
+  //   debtors: { id: string; balance: number; paid: boolean }[];
+  // }>({ debtors: [] });
+  //
+  const [debtors, setDebtors] = createStore<{
+    debtors: { id: string; balance: number; paid: boolean }[];
+  }>({
+    debtors: [],
+  });
+
+  // States for Lifetime Inflows vs Outflows chart
+  const [minMonth, setMinMonth] = createSignal<string | null>(null);
+  const [maxMonth, setMaxMonth] = createSignal<string | null>(null);
+
+  // ===========================================================================
+  // Queries
+  // ===========================================================================
+  const sheet = useLiveQuery(() =>
+    db.sheets.where("id").equals(parseInt(pageContext.routeParams.id)).first()
+  );
+
+  // ===========================================================================
+  // Derived States
+  // ===========================================================================
+  const filteredLifetimeInflowsVsOutflows = createMemo(() => {
+    const {
+      months: allMonths,
+      inflows: allInflows,
+      outflows: allOutflows,
+    } = stats.lifetime_inflows_vs_outflows;
+
+    if (!allMonths || allMonths.length === 0) {
+      return { months: [], inflows: [], outflows: [], savings_average: 0 };
+    }
+
+    const currentMinMonth = minMonth();
+    const currentMaxMonth = maxMonth();
+
+    // Find start index (inclusive)
+    let startIndex = 0;
+    if (currentMinMonth) {
+      const foundIndex = allMonths.findIndex((m) => m === currentMinMonth);
+      if (foundIndex !== -1) {
+        startIndex = foundIndex;
+      }
+    }
+
+    // Find end index (inclusive)
+    let endIndex = allMonths.length - 1;
+    if (currentMaxMonth) {
+      const foundIndex = allMonths.findIndex((m) => m === currentMaxMonth);
+      if (foundIndex !== -1) {
+        endIndex = foundIndex;
+      }
+    }
+
+    // Ensure start index is not after end index
+    if (startIndex > endIndex) {
+      // If invalid range (min > max), return empty or adjust - returning empty slice for now
+      return { months: [], inflows: [], outflows: [], savings_average: 0 };
+    }
+
+    // Slice the data arrays based on the calculated indices (endIndex + 1 because slice is exclusive)
+    const filteredMonths = allMonths.slice(startIndex, endIndex + 1);
+    const filteredInflows = allInflows.slice(startIndex, endIndex + 1);
+    const filteredOutflows = allOutflows.slice(startIndex, endIndex + 1);
+
+    // Calculate total inflows and outflows for filtered period.
+    const totalFilteredInflows = filteredInflows.reduce((sum, val) => sum + val, 0);
+    const totalFilteredOutflows = filteredOutflows.reduce((sum, val) => sum + Math.abs(val), 0); // Use absolute value for outflows
+
+    // Calculate savings average for the filtered period (avoid division by zero)
+    const savingsAverage =
+      totalFilteredInflows > 0
+        ? (totalFilteredInflows - totalFilteredOutflows) / totalFilteredInflows
+        : 0;
+
+    return {
+      months: filteredMonths,
+      inflows: filteredInflows,
+      outflows: filteredOutflows,
+      savings_average: savingsAverage,
+    };
+  });
+
+  // ===========================================================================
+  // Effects
+  // ===========================================================================
   createEffect(() => {
     if (sheet.data?.content && isReady()) {
       let start = performance.now();
@@ -74,13 +169,14 @@ const Page: Component = () => {
       );
 
       const lifetimeInflowsVsOutflows = dataframe.get_inflows_vs_outflows();
-      console.log(lifetimeInflowsVsOutflows);
+
+      // WARNING ⚠️: doing inflows.values().toArray() causes error in WebKit. IDK WHY! But no problem in Chromium.
       setStats(
         produce((_stats) => {
           _stats.lifetime_inflows_vs_outflows = {
-            inflows: lifetimeInflowsVsOutflows.inflows.values().toArray(),
-            months: lifetimeInflowsVsOutflows.months.values().toArray(),
-            outflows: lifetimeInflowsVsOutflows.outflows.values().toArray(),
+            inflows: lifetimeInflowsVsOutflows.inflows as unknown as number[],
+            months: lifetimeInflowsVsOutflows.months,
+            outflows: lifetimeInflowsVsOutflows.outflows as unknown as number[],
           };
         })
       );
@@ -94,18 +190,32 @@ const Page: Component = () => {
   const handleDebtorInput = debounce((value: string) => {
     if (!isReady()) return;
 
-    const debtors = dataframe.search_debtors(value);
-    console.log("carloovec", debtors);
+    const _debtors = dataframe.search_debtors(value);
+
+    setDebtors(
+      "debtors",
+      _debtors.map((d) => ({
+        id: d.id,
+        balance: d.balance,
+        paid: d.paid,
+      }))
+    );
   }, 500);
 
+  onMount(() => {
+    handleDebtorInput("");
+  });
+
   return (
-    <>
-      <button
-        class="m-10 grid h-10 w-10 place-items-center rounded-md border text-neutral-800"
-        onClick={() => navigate(PageRoutes.Home)}
-      >
-        <IconChevronLeft />
-      </button>
+    <div class="bg-background py-10">
+      <div class="max-w-7xl px-4 sm:px-6 lg:px-8">
+        <button
+          class="grid h-10 w-10 place-items-center rounded-md border text-neutral-800"
+          onClick={() => navigate(PageRoutes.Home)}
+        >
+          <IconChevronLeft />
+        </button>
+      </div>
 
       <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-2 flex gap-x-1">
@@ -114,12 +224,14 @@ const Page: Component = () => {
               {sheet.data?.name}
             </span>
           </Show>
-          <span class="rounded-lg bg-neutral-100 px-3 py-1 text-sm text-neutral-800">
+          <span class="bg-card text-card-foreground/50 border-border rounded-lg border px-3 py-1 text-sm">
             Last Opened: {formatDate(sheet.data?.last_opened_at ?? new Date())}
           </span>
         </div>
-        <h1 class="mb-8 text-4xl font-bold text-gray-900">Here are some insights by Quarta</h1>
-        <div class="mb-8 rounded-lg border border-gray-300 bg-white p-6 shadow-sm">
+        <h1 class="text-foreground mt-4 mb-8 text-4xl font-bold">
+          Here are some insights by Quarta
+        </h1>
+        <div class="bg-card border-border mb-8 rounded-lg border p-6 shadow-sm">
           <h2 class="mb-4 text-xl font-semibold">AI-Powered Summary</h2>
           <p class="text-gray-600">
             Lorem ipsum dolor sit amet, consectetur adipiscing elit. Your financial health looks
@@ -140,7 +252,7 @@ const Page: Component = () => {
           </div>
         </div>
         <div class="grid grid-cols-2 gap-8">
-          <div class="rounded-lg bg-white p-6 shadow-sm">
+          <div class="bg-card rounded-lg p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold">Total Earn vs Total Spend</h3>
             <div class="rounded-lg">
               <PolarChart
@@ -163,22 +275,55 @@ const Page: Component = () => {
             </div>
           </div>
 
-          <div class="overflow-hidden rounded-lg bg-white p-6 shadow-sm">
+          <div class="bg-card overflow-hidden rounded-lg p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold">Lifetime Inflows vs Outflows</h3>
+
+            <div class="mb-4 flex flex-wrap items-center gap-4 text-sm">
+              <label class="flex items-center gap-2">
+                <span>Min Month:</span>
+                <select
+                  class="border-border text-foreground bg-background rounded border px-2 py-1"
+                  value={minMonth() ?? ""}
+                  onChange={(e) => setMinMonth(e.currentTarget.value || null)}
+                  disabled={stats.lifetime_inflows_vs_outflows.months.length === 0}
+                >
+                  <option value="">Start</option>
+                  <For each={stats.lifetime_inflows_vs_outflows.months}>
+                    {(month) => <option value={month}>{month}</option>}
+                  </For>
+                </select>
+              </label>
+              <label class="flex items-center gap-2">
+                <span>Max Month:</span>
+                <select
+                  class="border-border text-foreground bg-background rounded border px-2 py-1"
+                  value={maxMonth() ?? ""}
+                  onChange={(e) => setMaxMonth(e.currentTarget.value || null)}
+                  disabled={stats.lifetime_inflows_vs_outflows.months.length === 0}
+                >
+                  <option value="">End</option>
+                  <For each={stats.lifetime_inflows_vs_outflows.months}>
+                    {(month) => <option value={month}>{month}</option>}
+                  </For>
+                </select>
+              </label>
+            </div>
+
             <div class="overflow-x-scroll rounded-lg">
-              <div class="w-[900px]">
+              <div class="w-full">
                 <StackedBarChart
                   data={{
-                    x: stats.lifetime_inflows_vs_outflows.months,
+                    // Use the filtered data from the memo
+                    x: filteredLifetimeInflowsVsOutflows().months,
                     y: [
                       {
                         label: "Inflows",
-                        data: stats.lifetime_inflows_vs_outflows.inflows,
+                        data: filteredLifetimeInflowsVsOutflows().inflows,
                         color: "green",
                       },
                       {
                         label: "Outflows",
-                        data: stats.lifetime_inflows_vs_outflows.outflows,
+                        data: filteredLifetimeInflowsVsOutflows().outflows,
                         color: "red",
                       },
                     ],
@@ -186,45 +331,19 @@ const Page: Component = () => {
                 />
               </div>
             </div>
+
+            <div class="mt-5 flex justify-start">
+              <div class="flex items-center gap-x-1 self-start rounded-full border border-purple-200 bg-purple-100 px-3 py-1 text-sm text-purple-600">
+                <IconTrendingUp class="h-4 w-4 text-purple-500" />
+                <span class="flex font-medium">
+                  Savings Average:{" "}
+                  {(filteredLifetimeInflowsVsOutflows().savings_average * 100).toFixed(2)}%
+                </span>
+              </div>
+            </div>
           </div>
 
-          {/* <div class="rounded-lg bg-white p-6 shadow-sm">
-            <h3 class="mb-4 text-lg font-semibold">Monthly Inflows vs Outflows</h3>
-            <div class="rounded-lg">
-              <StackedBarChart
-                data={{
-                  x: [
-                    "Jan",
-                    "Feb",
-                    "Mar",
-                    "Apr",
-                    "May",
-                    "Jun",
-                    "Jul",
-                    "Aug",
-                    "Sep",
-                    "Oct",
-                    "Nov",
-                    "Dec",
-                  ],
-                  y: [
-                    {
-                      label: "Inflows",
-                      data: [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 110, 120],
-                      color: "green",
-                    },
-                    {
-                      label: "Outflows",
-                      data: [-30, -20, -100, -40, -99, -60, -130, -80, -90, -100, -110, -20],
-                      color: "red",
-                    },
-                  ],
-                }}
-              />
-            </div>
-          </div> */}
-
-          <div class="rounded-lg bg-white p-6 shadow-sm">
+          <div class="bg-card rounded-lg p-6 shadow-sm">
             <h3 class="mb-4 text-lg font-semibold">Debts Overview</h3>
             <input
               type="text"
@@ -234,13 +353,33 @@ const Page: Component = () => {
                 setDebtSearch(e.currentTarget.value);
                 handleDebtorInput(e.currentTarget.value);
               }}
-              class="mb-4 w-full rounded-lg border px-4 py-2"
+              class="border-border mb-4 w-full rounded-lg border px-4 py-2"
             />
-            <div class="h-32 rounded-lg bg-gray-200"></div>
+            <div class="max-h-80 overflow-auto rounded-lg">
+              <DataTable
+                columns={[
+                  {
+                    accessorKey: "id",
+                  },
+                  {
+                    accessorKey: "balance",
+                  },
+                  {
+                    accessorKey: "paid",
+                    cell: (props) => (
+                      <span class={props.row.original.paid ? "text-green-500" : "text-red-500"}>
+                        {props.row.original.paid ? "true" : "false"}
+                      </span>
+                    ),
+                  },
+                ]}
+                data={debtors.debtors}
+              />
+            </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

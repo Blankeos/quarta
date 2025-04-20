@@ -1,6 +1,11 @@
 export { default as IconPiggyBank } from "./fa6-solid_piggy-bank.svg";
+export { default as IconTrendingDown } from "./heroicons_arrow-trending-down-16-solid.svg";
+export { default as IconTrendingUp } from "./heroicons_arrow-trending-up-16-solid.svg";
 export { default as IconChevronLeft } from "./line-md_chevron-small-left.svg";
 export { default as IconDownloading } from "./line-md_downloading-loop.svg";
+export { default as IconLoading } from "./line-md_loading-loop.svg";
+export { default as IconMoon } from "./line-md_moon-rising-twotone-alt-loop.svg";
+export { default as IconSun } from "./line-md_sun-rising-twotone-loop.svg";
 export { default as IconClose } from "./material-symbols:close-small-rounded.svg";
 export { default as IconLink } from "./solar_link-round-angle-bold.svg";
 export { default as IconEdit } from "./solar_pen-new-round-line-duotone.svg";
