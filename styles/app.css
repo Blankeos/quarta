@@ -40,9 +40,24 @@ button {
   }
 
   .dark {
+    color: #f6f6f6;
+    ::-webkit-scrollbar-track {
+      background: #1e1e1e; /* Dark grey color, you can choose any color you like */
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #555; /* Medium grey color, this is the actual scrollbar */
+      border-radius: 10px;
+    }
+
+    ::-webkit-scrollbar {
+      width: 6px; /* Width of the vertical scrollbar */
+      height: 6px; /* Height of the horizontal scrollbar */
+    }
+
     --background: hsl(0, 0%, 3.9%);
     --foreground: hsl(0, 0%, 98%);
-    --card: hsl(0, 0%, 3.9%);
+    --card: hsl(0, 0%, 8.9%);
     --card-foreground: hsl(0, 0%, 98%);
     --popover: hsl(0, 0%, 3.9%);
     --popover-foreground: hsl(0, 0%, 98%);
