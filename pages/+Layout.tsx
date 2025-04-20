@@ -9,7 +9,9 @@ import "tippy.js/dist/tippy.css";
 
 import { Toaster } from "solid-sonner";
 
+import { ThemeSwitcher } from "@/components/theme-switcher";
 import { RustWasmProvider } from "@/contexts/rust-wasm";
+import { ThemeContextProvider, useThemeContext } from "@/contexts/theme";
 
 useMetadata.setGlobalDefaults({
   title: getTitle("Home"),
@@ -20,11 +22,25 @@ const queryClient = new QueryClient();
 
 export default function RootLayout(props: FlowProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <RustWasmProvider>
-        <div>{props.children}</div>
-        <Toaster />
-      </RustWasmProvider>
-    </QueryClientProvider>
+    <ThemeContextProvider>
+      <QueryClientProvider client={queryClient}>
+        <RustWasmProvider>
+          <div class="bg-background relative">
+            <div class="absolute top-5 right-5">
+              <ThemeSwitcher />
+            </div>
+            {props.children}
+          </div>
+
+          <Toaster_ />
+        </RustWasmProvider>
+      </QueryClientProvider>
+    </ThemeContextProvider>
   );
+}
+
+function Toaster_() {
+  const { theme } = useThemeContext();
+
+  return <Toaster theme={theme()} />;
 }
