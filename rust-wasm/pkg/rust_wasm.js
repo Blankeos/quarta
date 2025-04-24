@@ -94,6 +94,8 @@ function getArrayJsValueFromWasm0(ptr, len) {
     return result;
 }
 
+const __wbindgen_enum_DebtDirection = ["In", "Out"];
+
 const CounterFinalization = (typeof FinalizationRegistry === 'undefined')
     ? { register: () => {}, unregister: () => {} }
     : new FinalizationRegistry(ptr => wasm.__wbg_counter_free(ptr >>> 0, 1));
@@ -372,6 +374,13 @@ export class SearchDebtors {
     get paid() {
         const ret = wasm.searchdebtors_paid(this.__wbg_ptr);
         return ret !== 0;
+    }
+    /**
+     * @returns {DebtDirection}
+     */
+    get direction() {
+        const ret = wasm.searchdebtors_direction(this.__wbg_ptr);
+        return __wbindgen_enum_DebtDirection[ret];
     }
 }
 

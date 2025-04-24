@@ -198,18 +198,41 @@ impl RustDataframe {
     #[wasm_bindgen]
     pub fn search_debtors(&self, search_str: &str) -> Vec<SearchDebtors> {
         if let Some(df) = self.df.as_ref() {
-            let mut debtors = HashMap::new();
+            struct TempDebtorMapValue {
+                balance: f64,
+                direction: DebtDirection,
+            }
+
+            let mut debtors_map = HashMap::<String, TempDebtorMapValue>::new();
             let mut debtors_vec: Vec<SearchDebtors> = Vec::new();
 
-            for row in df.iter() {
+            let debts_df = df.clone().filter(exp("tags", Regex, "Debt")).unwrap();
+
+            for row in debts_df.iter() {
                 if let Some(Cell::Str(id)) = row.get("id") {
                     if id.to_lowercase().contains(&search_str) {
                         match row.get("amount").as_ref() {
                             Some(Cell::Float(amount)) => {
-                                debtors
+                                let debt_direction: DebtDirection = match row.get("tags").unwrap() {
+                                    Cell::Str(v) => {
+                                        if v.contains(":In") {
+                                            DebtDirection::In
+                                        } else {
+                                            DebtDirection::Out
+                                        }
+                                    }
+                                    _ => DebtDirection::Out,
+                                };
+
+                                debtors_map
                                     .entry(id.clone())
-                                    .and_modify(|total: &mut f64| *total += amount)
-                                    .or_insert(*amount);
+                                    .and_modify(|debt: &mut TempDebtorMapValue| {
+                                        debt.balance += amount
+                                    })
+                                    .or_insert(TempDebtorMapValue {
+                                        balance: *amount,
+                                        direction: debt_direction,
+                                    });
                             }
                             _ => {}
                         }
@@ -217,13 +240,18 @@ impl RustDataframe {
                 }
             }
 
-            for (id, balance) in debtors {
-                let paid = balance >= 0.0;
-                console_log!("ID: {}, Balance: {}, Paid: {}", id, balance, paid);
+            for (id, value) in debtors_map {
+                let paid = if value.direction == DebtDirection::In {
+                    value.balance <= 0.0
+                } else {
+                    value.balance >= 0.0
+                };
+                // console_log!("ID: {}, Balance: {}, Paid: {}", id, balance, paid);
 
                 debtors_vec.push(SearchDebtors {
                     id: id.clone(),
-                    balance,
+                    balance: value.balance,
+                    direction: value.direction,
                     paid,
                 })
             }
@@ -452,10 +480,18 @@ fn get_months_str_by_range(start: chrono::NaiveDate, end: chrono::NaiveDate) -> 
 }
 
 #[wasm_bindgen]
+#[derive(serde::Serialize, Clone, Copy, PartialEq, Eq)]
+pub enum DebtDirection {
+    In = "In",
+    Out = "Out",
+}
+
+#[wasm_bindgen]
 #[derive(serde::Serialize)]
 pub struct SearchDebtors {
     id: String,
     balance: f64,
+    direction: DebtDirection,
     paid: bool,
 }
 
@@ -472,6 +508,10 @@ impl SearchDebtors {
     #[wasm_bindgen(getter)]
     pub fn paid(&self) -> bool {
         self.paid
+    }
+    #[wasm_bindgen(getter)]
+    pub fn direction(&self) -> DebtDirection {
+        self.direction
     }
 }
 

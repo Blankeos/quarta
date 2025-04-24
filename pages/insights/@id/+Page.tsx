@@ -13,7 +13,7 @@ import { PolarChart } from "@/components/polarchart";
 import { StackedBarChart } from "@/components/stackedbarchart";
 import DataTable from "@/components/ui/data-table";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
-import { RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
+import { DebtDirection, RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatDate } from "@/utils/format-date";
@@ -62,12 +62,8 @@ const Page: Component = () => {
 
   const [debtSearch, setDebtSearch] = createSignal("");
 
-  // const [debtors, setDebtors] = createStore<{
-  //   debtors: { id: string; balance: number; paid: boolean }[];
-  // }>({ debtors: [] });
-  //
   const [debtors, setDebtors] = createStore<{
-    debtors: { id: string; balance: number; paid: boolean }[];
+    debtors: { id: string; balance: number; paid: boolean; direction: DebtDirection }[];
   }>({
     debtors: [],
   });
@@ -198,6 +194,7 @@ const Page: Component = () => {
         id: d.id,
         balance: d.balance,
         paid: d.paid,
+        direction: d.direction,
       }))
     );
   }, 500);
@@ -364,6 +361,7 @@ const Page: Component = () => {
                   },
                   {
                     accessorKey: "balance",
+                    accessorFn: (row) => formatCurrency(row.balance),
                   },
                   {
                     accessorKey: "paid",
@@ -372,6 +370,9 @@ const Page: Component = () => {
                         {props.row.original.paid ? "true" : "false"}
                       </span>
                     ),
+                  },
+                  {
+                    accessorKey: "direction",
                   },
                 ]}
                 data={debtors.debtors}
