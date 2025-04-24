@@ -355,6 +355,7 @@ const Page: Component = () => {
               }}
               class="border-border mb-4 w-full rounded-lg border px-4 py-2"
             />
+
             <div class="max-h-80 overflow-auto rounded-lg">
               <DataTable
                 columns={[

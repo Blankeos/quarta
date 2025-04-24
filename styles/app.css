@@ -3,6 +3,7 @@
 
 :root {
   font-family: "Vercetti", serif;
+  background: var(--background);
 }
 
 button {

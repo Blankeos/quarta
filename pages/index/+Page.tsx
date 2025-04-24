@@ -108,131 +108,145 @@ export default function Page() {
 
   return (
     <>
-      <div
-        class="flex min-h-screen flex-col items-center justify-center p-4"
-        {...dropzone.getRootProps()}
-      >
-        <h1 class="text-primary mb-2 text-5xl font-bold">Quarta</h1>
-        <p class="mb-1">Personal finance insights powered by your own Spreadsheet</p>
-        <p class="mb-8 text-xs text-gray-600">Powered by 🦀 Rust and 🐬 SolidJS</p>
-        <div class="w-full max-w-md">
-          <input
-            type="text"
-            placeholder="Paste your Google Sheet URL here or ID."
-            value={inputValue()}
-            onInput={(e) => {
-              const value = e.currentTarget.value;
-              setInputValue(value);
-              detectInputType(value);
-            }}
-            onKeyDown={handleKeyDown}
-            class="border-border text-accent-foreground w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
-          />
+      <div class="flex min-h-screen flex-col">
+        <div
+          class="flex flex-1 flex-col items-center justify-center p-4"
+          {...dropzone.getRootProps()}
+        >
+          <h1 class="text-primary mb-2 text-5xl font-bold">Quarta</h1>
+          <p class="mb-1">Personal finance insights powered by your own Spreadsheet</p>
+          <p class="mb-8 text-xs text-gray-600">Powered by 🦀 Rust and 🐬 SolidJS</p>
+          <div class="w-full max-w-md">
+            <input
+              type="text"
+              placeholder="Paste your Google Sheet URL here or ID."
+              value={inputValue()}
+              onInput={(e) => {
+                const value = e.currentTarget.value;
+                setInputValue(value);
+                detectInputType(value);
+              }}
+              onKeyDown={handleKeyDown}
+              class="border-border text-accent-foreground w-full rounded-lg border p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            />
 
-          <Show when={inputType() || dropzone.isDragActive}>
-            <p class="mt-2 flex items-center gap-x-1 text-sm text-gray-600">
-              Detected input type:{" "}
-              <Switch>
-                <Match when={inputType() === "url"}>
-                  <IconLink class="h-5 w-5 text-[#188038]" />
-                  Google Sheet URL
-                </Match>
-                <Match when={inputType() === "key"}>
-                  <IconGoogleSheet class="h-5 w-5" />
-                  Google Sheet Key
-                </Match>
-                <Match when={inputType() === "raw"}>
-                  <IconLink class="h-5 w-5" />
-                  Raw CSV URL
-                </Match>
-                <Match when={dropzone.isDragActive}>
-                  <IconLink class="h-5 w-5" />A CSV file?
-                </Match>
-              </Switch>
-            </p>
-          </Show>
-          {downloadMutation.isPending && (
-            <div class="text-primary mt-4 flex justify-center">
-              <IconDownloading />
-            </div>
-          )}
-        </div>
-        <div class="mt-8 w-full max-w-md">
-          <For each={sheets.data ?? []}>
-            {(sheet) => {
-              const [isEditing, setIsEditing] = createSignal(false);
+            <Show when={inputType() || dropzone.isDragActive}>
+              <p class="mt-2 flex items-center gap-x-1 text-sm text-gray-600">
+                Detected input type:{" "}
+                <Switch>
+                  <Match when={inputType() === "url"}>
+                    <IconLink class="h-5 w-5 text-[#188038]" />
+                    Google Sheet URL
+                  </Match>
+                  <Match when={inputType() === "key"}>
+                    <IconGoogleSheet class="h-5 w-5" />
+                    Google Sheet Key
+                  </Match>
+                  <Match when={inputType() === "raw"}>
+                    <IconLink class="h-5 w-5" />
+                    Raw CSV URL
+                  </Match>
+                  <Match when={dropzone.isDragActive}>
+                    <IconLink class="h-5 w-5" />A CSV file?
+                  </Match>
+                </Switch>
+              </p>
+            </Show>
+            {downloadMutation.isPending && (
+              <div class="text-primary mt-4 flex justify-center">
+                <IconDownloading />
+              </div>
+            )}
+          </div>
+          <div class="mt-8 w-full max-w-md">
+            <For each={sheets.data ?? []}>
+              {(sheet) => {
+                const [isEditing, setIsEditing] = createSignal(false);
 
-              let inputRef!: HTMLInputElement;
+                let inputRef!: HTMLInputElement;
 
-              return (
-                <div class="group relative mb-2 flex items-center">
-                  <a
-                    href={`${PageRoutes.Insights}/${sheet.id}`}
-                    class="relative flex w-full items-center justify-between rounded border p-3 px-5 transition"
-                  >
-                    <Show
-                      when={isEditing()}
-                      fallback={<div>{sheet.name ? sheet?.name : "-"}</div>}
-                      children={
-                        <div>
-                          <input
-                            ref={inputRef}
-                            type="text"
-                            value={sheet.name ?? ""}
-                            onInput={(e) => {
-                              const value = e.currentTarget.value;
-                              db.sheets.update(sheet.id, { name: value });
+                return (
+                  <div class="group relative mb-2 flex items-center">
+                    <a
+                      href={`${PageRoutes.Insights}/${sheet.id}`}
+                      class="relative flex w-full items-center justify-between rounded border p-3 px-5 transition"
+                      style={{
+                        "pointer-events": isEditing() ? "none" : "auto",
+                      }}
+                    >
+                      <Show
+                        when={isEditing()}
+                        fallback={<div>{sheet.name ? sheet?.name : "-"}</div>}
+                        children={
+                          <div>
+                            <input
+                              ref={inputRef}
+                              type="text"
+                              value={sheet.name ?? ""}
+                              onInput={(e) => {
+                                const value = e.currentTarget.value;
+                                db.sheets.update(sheet.id, { name: value });
+                              }}
+                              onBlur={() => {
+                                setIsEditing(false);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === "Escape" || e.key === "Enter") {
+                                  e.currentTarget.blur();
+                                }
+                              }}
+                              autofocus
+                              class="w-full focus:outline-none"
+                            />
+                          </div>
+                        }
+                      />
+                    </a>
+
+                    <div class="absolute right-0 flex items-center gap-x-0">
+                      <div class="flex items-center opacity-0 transition group-hover:opacity-100">
+                        <Tippy props={{ delay: [200, 0] }} content="Edit Name">
+                          <button
+                            class="cursor-pointer text-gray-400 transition active:scale-95"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              e.preventDefault();
+                              setIsEditing(true);
+                              inputRef?.focus();
                             }}
-                            onBlur={() => {
-                              setIsEditing(false);
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.key === "Escape" || e.key === "Enter") {
-                                e.currentTarget.blur();
-                              }
-                            }}
-                            autofocus
-                            class="w-full border-b focus:outline-none"
-                          />
-                        </div>
-                      }
-                    />
-                  </a>
-
-                  <div class="absolute right-0 flex items-center gap-x-0">
-                    <div class="flex items-center opacity-0 transition group-hover:opacity-100">
-                      <Tippy props={{ delay: [200, 0] }} content="Edit Name">
+                          >
+                            <IconEdit class="h-6 w-6" />
+                          </button>
+                        </Tippy>
+                      </div>
+                      <Tippy props={{ delay: [200, 0] }} content="Delete">
                         <button
-                          class="cursor-pointer text-gray-400 transition active:scale-95"
+                          class="cursor-pointer text-red-400 transition active:scale-95"
                           onClick={(e) => {
                             e.stopPropagation();
                             e.preventDefault();
-                            setIsEditing(true);
-                            inputRef?.focus();
+                            db.sheets.delete(sheet.id);
                           }}
                         >
-                          <IconEdit class="h-6 w-6" />
+                          <IconClose />
                         </button>
                       </Tippy>
                     </div>
-                    <Tippy props={{ delay: [200, 0] }} content="Delete">
-                      <button
-                        class="cursor-pointer text-red-400 transition active:scale-95"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          e.preventDefault();
-                          db.sheets.delete(sheet.id);
-                        }}
-                      >
-                        <IconClose />
-                      </button>
-                    </Tippy>
                   </div>
-                </div>
-              );
-            }}
-          </For>
+                );
+              }}
+            </For>
+          </div>
         </div>
+        <footer class="flex h-20 items-center justify-center">
+          <a
+            href="https://docs.google.com/spreadsheets/d/1rOePbAkjfpI-srbIBnAj8M6_lr11A6BCJqzMy1mzRF4/edit?usp=sharing"
+            class="text-primary hover:underline"
+            target="_blank"
+          >
+            Get the sample Spreadsheet here
+          </a>
+        </footer>
       </div>
     </>
   );
