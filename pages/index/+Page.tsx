@@ -169,7 +169,7 @@ export default function Page() {
                   <div class="group relative mb-2 flex items-center">
                     <a
                       href={`${PageRoutes.Insights}/${sheet.id}`}
-                      class="relative flex w-full items-center justify-between rounded border p-3 px-5 transition"
+                      class="border-border relative flex w-full items-center justify-between rounded border p-3 px-5 transition"
                       style={{
                         "pointer-events": isEditing() ? "none" : "auto",
                       }}
