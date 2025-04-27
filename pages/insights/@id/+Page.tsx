@@ -2,18 +2,28 @@ import { PageRoutes } from "@/constants/page-routes";
 import { db } from "@/lib/dexie";
 import { useLiveQuery } from "@/lib/dexie-solid-hook";
 import getTitle from "@/utils/get-title";
-import { Component, createEffect, createMemo, createSignal, For, onMount, Show } from "solid-js";
+import {
+  Component,
+  createEffect,
+  createMemo,
+  createSignal,
+  For,
+  mergeProps,
+  onMount,
+  Show,
+} from "solid-js";
 import { createStore } from "solid-js/store";
 import { useMetadata } from "vike-metadata-solid";
 import { usePageContext } from "vike-solid/usePageContext";
 import { navigate } from "vike/client/router";
 
-import { IconChevronLeft, IconPiggyBank, IconTrendingUp } from "@/assets";
+import { IconChevronLeft, IconPiggyBank, IconTrendingDown, IconTrendingUp } from "@/assets";
 import { PolarChart } from "@/components/polarchart";
 import { StackedBarChart } from "@/components/stackedbarchart";
 import DataTable from "@/components/ui/data-table";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
 import { DebtDirection, RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
+import { cn } from "@/utils/cn";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatDate } from "@/utils/format-date";
@@ -90,7 +100,14 @@ const Page: Component = () => {
     } = stats.lifetime_inflows_vs_outflows;
 
     if (!allMonths || allMonths.length === 0) {
-      return { months: [], inflows: [], outflows: [], savings_average: 0 };
+      return {
+        months: [],
+        inflows: [],
+        outflows: [],
+        savings_average: 0,
+        average_in: 0, // Added
+        average_out: 0, // Added
+      };
     }
 
     const currentMinMonth = minMonth();
@@ -117,7 +134,14 @@ const Page: Component = () => {
     // Ensure start index is not after end index
     if (startIndex > endIndex) {
       // If invalid range (min > max), return empty or adjust - returning empty slice for now
-      return { months: [], inflows: [], outflows: [], savings_average: 0 };
+      return {
+        months: [],
+        inflows: [],
+        outflows: [],
+        savings_average: 0,
+        average_in: 0, // Added
+        average_out: 0, // Added
+      };
     }
 
     // Slice the data arrays based on the calculated indices (endIndex + 1 because slice is exclusive)
@@ -135,11 +159,18 @@ const Page: Component = () => {
         ? (totalFilteredInflows - totalFilteredOutflows) / totalFilteredInflows
         : 0;
 
+    // Calculate average in and average out (avoid division by zero)
+    const numberOfMonths = filteredMonths.length;
+    const averageIn = numberOfMonths > 0 ? totalFilteredInflows / numberOfMonths : 0; // Added
+    const averageOut = numberOfMonths > 0 ? totalFilteredOutflows / numberOfMonths : 0; // Added
+
     return {
       months: filteredMonths,
       inflows: filteredInflows,
       outflows: filteredOutflows,
       savings_average: savingsAverage,
+      average_in: averageIn, // Added
+      average_out: averageOut, // Added
     };
   });
 
@@ -329,14 +360,25 @@ const Page: Component = () => {
               </div>
             </div>
 
-            <div class="mt-5 flex justify-start">
-              <div class="flex items-center gap-x-1 self-start rounded-full border border-purple-200 bg-purple-100 px-3 py-1 text-sm text-purple-600">
-                <IconTrendingUp class="h-4 w-4 text-purple-500" />
-                <span class="flex font-medium">
-                  Savings Average:{" "}
-                  {(filteredLifetimeInflowsVsOutflows().savings_average * 100).toFixed(2)}%
-                </span>
-              </div>
+            <div class="mt-5 flex flex-wrap justify-start gap-2">
+              <TrendBadge
+                label="Savings Average"
+                value={filteredLifetimeInflowsVsOutflows().savings_average * 100}
+                variant="accent"
+                formatter={(num) => `${num.toFixed(2)}%`}
+              />
+              <TrendBadge
+                label="Average In"
+                value={filteredLifetimeInflowsVsOutflows().average_in}
+                variant="success"
+                formatter={(num) => formatCurrency(num)}
+              />
+              <TrendBadge
+                label="Average Out"
+                value={filteredLifetimeInflowsVsOutflows().average_out}
+                variant="danger"
+                formatter={(num) => `-${formatCurrency(num)}`}
+              />
             </div>
           </div>
 
@@ -386,3 +428,42 @@ const Page: Component = () => {
 };
 
 export default Page;
+
+export function TrendBadge(rawProps: {
+  label?: string;
+  value: number;
+  variant?: "success" | "danger" | "accent";
+  formatter?: (num: number) => string;
+}) {
+  const props = mergeProps(
+    {
+      label: "Trending",
+      variant: "success",
+      formatter: (num: number) => num.toFixed(2),
+    },
+    rawProps
+  );
+
+  return (
+    <div
+      class={cn(
+        "flex items-center gap-x-1 self-start rounded-full border border-purple-200 bg-purple-100 px-3 py-1 text-xs",
+        props.variant === "success" && "border-green-500 bg-green-100 text-green-500",
+        props.variant === "danger" && "border-red-500 bg-red-100 text-red-500",
+        props.variant === "accent" && "border-purple-500 bg-purple-100 text-purple-500"
+      )}
+    >
+      <Show when={rawProps.value >= 0}>
+        <IconTrendingUp class="h-4 w-4" />
+      </Show>
+      <Show when={rawProps.value < 0}>
+        <IconTrendingDown class="h-4 w-4" />
+      </Show>
+      {props.label && (
+        <span class="flex font-medium">
+          {props.label}: {props.formatter(rawProps.value)}
+        </span>
+      )}
+    </div>
+  );
+}
