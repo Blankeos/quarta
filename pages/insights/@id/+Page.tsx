@@ -277,6 +277,7 @@ const Page: Component = () => {
               onBlur={() => {
                 setEditingStore("isEditingName", false);
               }}
+              // Super complicated i don't even know dawg.
               onInput={(e) => {
                 const newName = e.target.textContent ?? "";
                 if (newName.length > 30) {

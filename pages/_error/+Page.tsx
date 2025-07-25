@@ -1,3 +1,5 @@
+import { Button } from "@/components/ui/button";
+import { getRoute } from "@/src/route-tree.gen";
 import { Show } from "solid-js";
 import { usePageContext } from "vike-solid/usePageContext";
 
@@ -10,6 +12,9 @@ const ErrorDisplay = (props: { code: string; title: string; message: string }) =
     <div class="flex flex-col">
       <h2 class="text-foreground text-xl font-medium">{props.title}</h2>
       <p class="text-foreground/50 mt-1 text-sm">{props.message}</p>
+      <Button as="a" href={getRoute("/")} class="mt-2 text-xs" size="sm">
+        Back to Home
+      </Button>
     </div>
   </div>
 );
