@@ -442,9 +442,6 @@ function __wbg_get_imports() {
         const ret = arg0.getTimezoneOffset();
         return ret;
     };
-    imports.wbg.__wbg_log_29e54da1278f01d0 = function(arg0, arg1) {
-        console.log(getStringFromWasm0(arg0, arg1));
-    };
     imports.wbg.__wbg_new0_f788a2397c7ca929 = function() {
         const ret = new Date();
         return ret;
