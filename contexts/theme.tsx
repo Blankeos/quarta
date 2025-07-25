@@ -41,7 +41,7 @@ export const useThemeContext = () => useContext(ThemeContext);
 // ===========================================================================
 export const ThemeContextProvider: FlowComponent = (props) => {
   const [theme, setTheme] = useLocalStorage<Theme>({
-    key: "snom-sql-theme",
+    key: "quarta-theme",
     defaultValue: "system",
   });
 
