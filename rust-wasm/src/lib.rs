@@ -201,16 +201,22 @@ impl RustDataframe {
             struct TempDebtorMapValue {
                 balance: f64,
                 direction: DebtDirection,
+                related_rows: Option<Vec<String>>,
             }
 
             let mut debtors_map = HashMap::<String, TempDebtorMapValue>::new();
             let mut debtors_vec: Vec<SearchDebtors> = Vec::new();
 
-            let debts_df = df.clone().filter(exp("tags", Regex, "Debt")).unwrap();
+            let debts_df = df
+                .clone()
+                .filter(exp("tags", Regex, "Debt(:In|:Out)?"))
+                .unwrap();
+
+            console_log!("{:?}", debts_df);
 
             for row in debts_df.iter() {
                 if let Some(Cell::Str(id)) = row.get("id") {
-                    if id.to_lowercase().contains(&search_str) {
+                    if id.to_lowercase().contains(&search_str.to_lowercase()) {
                         match row.get("amount").as_ref() {
                             Some(Cell::Float(amount)) => {
                                 let debt_direction: DebtDirection = match row.get("tags").unwrap() {
@@ -227,11 +233,23 @@ impl RustDataframe {
                                 debtors_map
                                     .entry(id.clone())
                                     .and_modify(|debt: &mut TempDebtorMapValue| {
-                                        debt.balance += amount
+                                        debt.balance += amount;
+                                        if let Some(rows) = &mut debt.related_rows {
+                                            rows.push(format!(
+                                                "{}: {} PHP",
+                                                row.get("date").unwrap().as_string(),
+                                                row.get("amount").unwrap().as_string()
+                                            ));
+                                        }
                                     })
                                     .or_insert(TempDebtorMapValue {
                                         balance: *amount,
                                         direction: debt_direction,
+                                        related_rows: Some(vec![format!(
+                                            "{}: {} PHP",
+                                            row.get("date").unwrap().as_string(),
+                                            row.get("amount").unwrap().as_string()
+                                        )]),
                                     });
                             }
                             _ => {}
@@ -253,6 +271,7 @@ impl RustDataframe {
                     balance: value.balance,
                     direction: value.direction,
                     paid,
+                    related_rows: value.related_rows,
                 })
             }
 
@@ -493,6 +512,7 @@ pub struct SearchDebtors {
     balance: f64,
     direction: DebtDirection,
     paid: bool,
+    related_rows: Option<Vec<String>>,
 }
 
 #[wasm_bindgen]
@@ -512,6 +532,10 @@ impl SearchDebtors {
     #[wasm_bindgen(getter)]
     pub fn direction(&self) -> DebtDirection {
         self.direction
+    }
+    #[wasm_bindgen(getter)]
+    pub fn related_rows(&self) -> Option<Vec<String>> {
+        self.related_rows.clone()
     }
 }
 

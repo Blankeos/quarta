@@ -19,10 +19,12 @@ import { navigate } from "vike/client/router";
 
 import { IconChevronLeft, IconPiggyBank, IconTrendingDown, IconTrendingUp } from "@/assets";
 import { PolarChart } from "@/components/polarchart";
+import { Tippy } from "@/components/solid-tippy";
 import { StackedBarChart } from "@/components/stackedbarchart";
 import DataTable from "@/components/ui/data-table";
 import { useRustWasmContext } from "@/contexts/rust-wasm";
 import { DebtDirection, RustDataframe } from "@/rust-wasm/pkg/rust_wasm.js";
+import { IconInfoCircle } from "@/src/assets/icons";
 import { cn } from "@/utils/cn";
 import { debounce } from "@/utils/debounce";
 import { formatCurrency } from "@/utils/format-currency";
@@ -48,6 +50,12 @@ const Page: Component = () => {
   // ===========================================================================
   // States
   // ===========================================================================
+  const [editingStore, setEditingStore] = createStore<{
+    isEditingName: boolean;
+  }>({
+    isEditingName: false,
+  });
+
   const [stats, setStats] = createStore<{
     total_earned: number;
     total_spent: number;
@@ -73,7 +81,13 @@ const Page: Component = () => {
   const [debtSearch, setDebtSearch] = createSignal("");
 
   const [debtors, setDebtors] = createStore<{
-    debtors: { id: string; balance: number; paid: boolean; direction: DebtDirection }[];
+    debtors: {
+      id: string;
+      balance: number;
+      paid: boolean;
+      direction: DebtDirection;
+      relatedRows?: string[];
+    }[];
   }>({
     debtors: [],
   });
@@ -218,6 +232,7 @@ const Page: Component = () => {
     if (!isReady()) return;
 
     const _debtors = dataframe.search_debtors(value);
+    console.log(_debtors);
 
     setDebtors(
       "debtors",
@@ -226,6 +241,7 @@ const Page: Component = () => {
         balance: d.balance,
         paid: d.paid,
         direction: d.direction,
+        relatedRows: d.related_rows,
       }))
     );
   }, 500);
@@ -247,11 +263,42 @@ const Page: Component = () => {
 
       <div class="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
         <div class="mb-2 flex gap-x-1">
-          <Show when={sheet.data?.name}>
-            <span class="rounded-lg bg-neutral-100 px-3 py-1 text-sm text-neutral-800">
-              {sheet.data?.name}
-            </span>
+          <Show when={sheet.data?.id}>
+            <span
+              class="rounded-lg bg-neutral-100 px-3 py-1 text-sm text-neutral-800"
+              onClick={() => {}}
+              contenteditable
+              role="textbox"
+              textContent={editingStore.isEditingName ? undefined : sheet?.data?.name}
+              onFocus={(e) => {
+                setEditingStore("isEditingName", true);
+                e.target.textContent = sheet.data?.name ?? "";
+              }}
+              onBlur={() => {
+                setEditingStore("isEditingName", false);
+              }}
+              onInput={(e) => {
+                const newName = e.target.textContent ?? "";
+                if (newName.length > 30) {
+                  e.preventDefault();
+                  e.target.textContent = sheet.data!.name!.slice(0, 30);
+
+                  const range = document.createRange();
+                  range.selectNodeContents(e.target);
+                  range.collapse(false); // Collapse to the end
+                  const selection = window.getSelection();
+                  selection?.removeAllRanges();
+                  selection?.addRange(range);
+                  return;
+                }
+                if (sheet.data?.id) {
+                  console.log(newName);
+                  db.sheets.update(sheet.data.id, { name: newName });
+                }
+              }}
+            />
           </Show>
+
           <span class="bg-card text-card-foreground/50 border-border rounded-lg border px-3 py-1 text-sm">
             Last Opened: {formatDate(sheet.data?.last_opened_at ?? new Date())}
           </span>
@@ -403,7 +450,23 @@ const Page: Component = () => {
                   },
                   {
                     accessorKey: "balance",
-                    accessorFn: (row) => formatCurrency(row.balance),
+                    cell: (props) => (
+                      <span class="flex items-center gap-1">
+                        {formatCurrency(props.row.original.balance)}
+                        <Tippy
+                          props={{ placement: "right" }}
+                          content={
+                            <div class="flex flex-col">
+                              <For each={props.row.original.relatedRows}>
+                                {(row) => <span>{row}</span>}
+                              </For>
+                            </div>
+                          }
+                        >
+                          <IconInfoCircle class="h-3 w-3" />
+                        </Tippy>
+                      </span>
+                    ),
                   },
                   {
                     accessorKey: "paid",

@@ -12,7 +12,8 @@
     "lint:fix": "prettier --write .; eslint --fix .; tsc --noEmit;",
     "format": "prettier --write .",
     "update": "bunx npm-check-updates --interactive --format group",
-    "wasm-build": "cd rust-wasm && wasm-pack build --target web"
+    "wasm-build": "cd rust-wasm && wasm-pack build --target web",
+    "addicon": "sh -c 'echo icon=$1 name=$2; icones-cli --folder ./src/assets/icons --icon \"$1\" --name \"$2\"' dummy"
   },
   "keywords": [],
   "author": "",

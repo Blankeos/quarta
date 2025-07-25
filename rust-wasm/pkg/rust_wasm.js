@@ -382,6 +382,18 @@ export class SearchDebtors {
         const ret = wasm.searchdebtors_direction(this.__wbg_ptr);
         return __wbindgen_enum_DebtDirection[ret];
     }
+    /**
+     * @returns {string[] | undefined}
+     */
+    get related_rows() {
+        const ret = wasm.searchdebtors_related_rows(this.__wbg_ptr);
+        let v1;
+        if (ret[0] !== 0) {
+            v1 = getArrayJsValueFromWasm0(ret[0], ret[1]).slice();
+            wasm.__wbindgen_free(ret[0], ret[1] * 4, 4);
+        }
+        return v1;
+    }
 }
 
 async function __wbg_load(module, imports) {
