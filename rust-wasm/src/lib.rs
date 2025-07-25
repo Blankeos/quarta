@@ -212,8 +212,6 @@ impl RustDataframe {
                 .filter(exp("tags", Regex, "Debt(:In|:Out)?"))
                 .unwrap();
 
-            console_log!("{:?}", debts_df);
-
             for row in debts_df.iter() {
                 if let Some(Cell::Str(id)) = row.get("id") {
                     if id.to_lowercase().contains(&search_str.to_lowercase()) {
@@ -376,7 +374,6 @@ impl RustDataframe {
             let (min, max) = get_min_max_dates_from_lists(&inflow_months, &outflow_months);
             let months_range = get_months_str_by_range(min, max);
 
-            console_log!("months_range: {:#?}", months_range);
             (inflows, outflows) =
                 fill_missing_months_and_sort(&inflow_map, &outflow_map, &months_range);
 
