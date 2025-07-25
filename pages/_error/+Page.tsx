@@ -1,20 +1,56 @@
 import { Show } from "solid-js";
 import { usePageContext } from "vike-solid/usePageContext";
 
+// Helper component for consistent error display, styled with Tailwind CSS
+const ErrorDisplay = (props: { code: string; title: string; message: string }) => (
+  <div class="flex flex-col items-center gap-y-3 text-center sm:flex-row sm:items-center sm:gap-x-5 sm:text-left">
+    <h1 class="text-foreground text-5xl font-semibold">{props.code}</h1>
+    {/* Vertical separator, only shown on sm screens and up (when flex-direction is row) */}
+    <div class="bg-foreground hidden h-10 w-px sm:block" />
+    <div class="flex flex-col">
+      <h2 class="text-foreground text-xl font-medium">{props.title}</h2>
+      <p class="text-foreground/50 mt-1 text-sm">{props.message}</p>
+    </div>
+  </div>
+);
+
 export default function Page() {
-  const { is404 } = usePageContext();
+  const { is404, abortStatusCode, abortReason } = usePageContext();
+
   return (
-    <Show
-      when={is404}
-      fallback={
-        <>
-          <h1>500 Internal Server Error</h1>
-          <p>Something went wrong.</p>
-        </>
-      }
-    >
-      <h1>404 Page Not Found</h1>
-      <p>This page could not be found.</p>
-    </Show>
+    // Full-page container, centers content, applies base styling
+    <div class="bg-background text-foreground flex min-h-screen flex-col items-center justify-center p-4 antialiased">
+      <Show
+        when={is404}
+        fallback={
+          <ErrorDisplay
+            code={abortStatusCode ?? "500"}
+            title={
+              ERROR_MAP[abortStatusCode as unknown as keyof typeof ERROR_MAP] ?? "Server Error"
+            }
+            message={
+              (abortReason as string) ?? "Something went wrong on our end. Please try again later."
+            }
+          />
+        }
+      >
+        <ErrorDisplay
+          code="404"
+          title="Page Not Found"
+          message="Sorry, this page could not be found."
+        />
+      </Show>
+    </div>
   );
 }
+
+const ERROR_MAP = {
+  "500": "Server Error",
+  "400": "Bad Request",
+  "401": "Unauthorized",
+  "403": "Forbidden",
+  "404": "Page Not Found",
+  "502": "Bad Gateway",
+  "503": "Service Unavailable",
+  "504": "Gateway Timeout",
+};
