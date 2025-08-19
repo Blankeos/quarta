@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "bunx --bun vite --host",
-    "build": "vite build",
+    "build": "vite build && rm dist/client/404.html",
     "preview": "NODE_ENV=production bun run ./server.ts",
     "preview-static": "vite preview",
     "lint": "prettier --check .; eslint .; tsc --noEmit;",
